@@ -1,0 +1,17 @@
+
+#execution mode can be "databricks" or "local"
+execution_mode: databricks
+
+local_base_path: data
+
+catalog: zakrzewski_spark_task
+schemas:
+  raw: 10_raw
+  clean: 20_clean
+  serving: 30_serving
+tables:
+  raw_claims: raw_CLAIM
+  clean_claims: clean_CLAIM
+  raw_contracts: raw_CONTRACT
+  clean_contracts: clean_CONTRACT
+  serving_transactions: serving_TRANSACTIONS
