@@ -1,6 +1,6 @@
 
 #execution mode can be "databricks" or "local"
-execution_mode: databricks
+execution_mode: local
 
 local_base_path: data
 

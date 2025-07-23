@@ -1,2 +1,4 @@
-pyspark==3.5.0
+pyspark==3.4.1
 pyyaml==6.0.1
+requests==2.32.3
+zipfile36==3.0.4

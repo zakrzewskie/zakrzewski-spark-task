@@ -1,9 +1,6 @@
 import os
 
-def ensure_all_schemas(spark, catalog, schemas):
-    spark.sql(f"CREATE CATALOG IF NOT EXISTS {catalog}")
-    for schema in schemas.values():
-        spark.sql(f"CREATE SCHEMA IF NOT EXISTS {catalog}.{schema}")
+
 
 def read_dataset(spark, config, layer, table_name):
     """
