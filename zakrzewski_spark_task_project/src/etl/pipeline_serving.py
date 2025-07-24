@@ -24,8 +24,8 @@ def prepare_transactions(df_claims, df_contracts):
         F.lit("Europe 3").alias("CONTRACT_SOURCE_SYSTEM"),
         df_contracts.CONTRACT_ID.alias("CONTRACT_SOURCE_SYSTEM_ID"),
         F.regexp_replace(F.col("CLAIM_ID"), "^[A-Z_]+", "").alias("SOURCE_SYSTEM_ID"),
-        F.when(F.col("CLAIM_TYPE") == '2', "Corporate")
-         .when(F.col("CLAIM_TYPE") == '1', "Private")
+        F.when(F.col("CLAIM_TYPE") == '1', "Private")
+         .when(F.col("CLAIM_TYPE") == '2', "Corporate")
          .otherwise("Unknown").alias("TRANSACTION_TYPE"),
         F.when(F.col("CLAIM_ID").startswith("CL"), "COINSURANCE")
         .when(F.col("CLAIM_ID").startswith("RX"), "REINSURANCE")

@@ -33,6 +33,12 @@ serving_transactions_schema = StructType([
     StructField("NSE_ID", StringType(), False),
 ])
 
+# Composite primary keys for each table
+CONTRACTS_PRIMARY_KEY = ["SOURCE_SYSTEM", "CONTRACT_ID"]
+RAW_CLAIMS_PRIMARY_KEY = ["SOURCE_SYSTEM", "CLAIM_ID", "CONTRACT_SOURCE_SYSTEM", "CONTRAT_ID"]
+CLAIMS_PRIMARY_KEY = ["SOURCE_SYSTEM", "CLAIM_ID", "CONTRACT_SOURCE_SYSTEM", "CONTRACT_ID"]
+TRANSACTIONS_PRIMARY_KEY = ["CONTRACT_SOURCE_SYSTEM", "CONTRACT_SOURCE_SYSTEM_ID", "NSE_ID"]
+
 def ensure_all_schemas(spark, catalog, schemas):
     spark.sql(f"CREATE CATALOG IF NOT EXISTS {catalog}")
     for schema in schemas.values():
