@@ -3,11 +3,15 @@ from data_io.ingest_hashify_api import get_md4_hash_udf
 
 def prepare_transactions(df_claims, df_contracts):
     
+    # select only used columns from contracts
     df_contracts = df_contracts.select(
         "CONTRACT_ID"
         )
 
+    # add NSE_ID to claims
     df_claims = df_claims.withColumn("NSE_ID", get_md4_hash_udf(F.col("CLAIM_ID")))
+
+    # select only used columns from claims
     df_claims = df_claims.select(
         "CLAIM_ID",
         "CONTRACT_ID",
@@ -18,8 +22,10 @@ def prepare_transactions(df_claims, df_contracts):
         "NSE_ID"
         )
     
+    # join claims and contracts
     df_joined = df_claims.join(df_contracts, df_claims.CONTRACT_ID == df_contracts.CONTRACT_ID, how="left_outer")
 
+    # Transactions mapping
     df_joined = df_joined.select(
         F.lit("Europe 3").alias("CONTRACT_SOURCE_SYSTEM"),
         df_contracts.CONTRACT_ID.alias("CONTRACT_SOURCE_SYSTEM_ID"),

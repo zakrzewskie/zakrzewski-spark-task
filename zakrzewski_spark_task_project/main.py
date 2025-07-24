@@ -7,31 +7,6 @@ import shutil
 from pyspark.sql import SparkSession
 from pyspark import SparkContext
 
-# # Set up venv Python for PySpark
-# venv_python = os.path.join(os.path.dirname(__file__), ".venv", "Scripts", "python.exe")
-# venv_python = os.path.abspath(venv_python)
-# os.environ["PYSPARK_PYTHON"] = venv_python
-# os.environ["PYSPARK_DRIVER_PYTHON"] = venv_python
-# 
-# # Set up path
-# try:
-#     project_root = os.path.dirname(os.path.abspath(__file__))
-# except NameError:
-#     project_root = os.getcwd()
-# src_path = os.path.join(project_root, 'src')
-# src_zip_path = os.path.join(project_root, 'src.zip')
-# if src_path not in sys.path:
-#     sys.path.insert(0, src_path)
-# 
-# 
-# print(os.listdir(os.path.join(os.path.dirname(__file__), 'src', 'etl')))
-
-# from utils.spark_utils import get_spark_session
-
-
-
-
-
 def get_project_root():
     try:
         return os.path.dirname(os.path.abspath(__file__))
@@ -79,8 +54,6 @@ def setup_paths_and_zip():
     zip_src_folder(src_path, zip_path)
     return zip_path
 
-
-
 def load_config(config_path="config/dev.yaml"):
     """Load YAML config file."""
     with open(config_path, "r") as f:
@@ -116,9 +89,10 @@ if __name__ == "__main__":
     
     spark = get_spark_session(execution_mode)
 
-    spark.sparkContext.addPyFile(src_zip)
-    
-    from etl.pipeline import run_pipeline
-
-    run_pipeline(spark, config)
-    print("Pipeline execution completed.")
+    try:
+        spark.sparkContext.addPyFile(src_zip)
+        from etl.pipeline import run_pipeline
+        run_pipeline(spark, config)
+        print("Pipeline execution completed.")
+    finally:
+        spark.stop()
