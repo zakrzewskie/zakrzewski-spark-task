@@ -2,12 +2,12 @@ from data_io.data_io import read_dataset, write_dataset
 from etl.pipeline_raw import CONTRACT_csv, CLAIM_csv, get_raw_data
 from etl.pipeline_clean import  rename_columns_contract, rename_columns_claim
 from etl.pipeline_serving import prepare_transactions
-from etl.utils import cast_column_types, assert_composite_key_unique
+from etl.utils import cast_column_types, assert_composite_key_unique, schema_json_path
 from etl.schema_definition import (
     clean_claims_schema, clean_contracts_schema, serving_transactions_schema,
     raw_claims_schema, raw_contracts_schema, ensure_all_schemas
 )
-from etl.utils import cast_column_types, assert_composite_key_unique, apply_schema_with_metadata
+from etl.utils import cast_column_types, assert_composite_key_unique, apply_schema_with_metadata, save_schema_with_metadata
 
 def run_pipeline(spark, config):
     # Ensure schema exists in databricks mode
@@ -57,3 +57,6 @@ def run_pipeline(spark, config):
     # Validate serving data using schema metadata
     assert_composite_key_unique(df_transactions)
     write_dataset(df_transactions, config, config['schemas']['serving'], config['tables']['serving_transactions'])
+
+    # Save schema with metadata as JSON
+    save_schema_with_metadata(df_transactions, schema_json_path(config))

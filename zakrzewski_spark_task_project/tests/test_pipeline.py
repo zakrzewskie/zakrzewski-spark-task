@@ -1,20 +1,22 @@
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
-
 import pytest
 from pyspark.sql.types import *
 from pyspark.sql import Row
 from unittest.mock import patch, MagicMock, call, ANY
 
-# Patch composite key check for all tests
-patch('etl.utils.assert_composite_key_unique', lambda df, keys=None: None).start()
+# Add src to path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 
-from etl.pipeline import run_pipeline
+# Patch the necessary functions before importing the module under test
+with patch('etl.utils.save_schema_with_metadata'), \
+     patch('etl.utils.assert_composite_key_unique', lambda df, keys=None: None):
+    from etl.pipeline import run_pipeline
 
+@patch('etl.utils.save_schema_with_metadata')
 class TestPipeline:
     """Test cases for main pipeline orchestration."""
-    
+
     @patch('etl.pipeline.ensure_all_schemas')
     @patch('etl.pipeline.write_dataset')
     @patch('etl.pipeline.read_dataset')
@@ -33,6 +35,7 @@ class TestPipeline:
         config = {
             "execution_mode": "databricks",
             "catalog": "test_catalog",
+            "local_base_path": "test_data",
             "schemas": {
                 "raw": "raw_schema",
                 "clean": "clean_schema",
@@ -92,6 +95,7 @@ class TestPipeline:
         # Arrange
         config = {
             "execution_mode": "local",
+            "local_base_path": "test_data",
             "schemas": {
                 "raw": "raw_schema",
                 "clean": "clean_schema",
@@ -145,7 +149,7 @@ class TestPipeline:
         # Arrange
         config = {
             "execution_mode": "local",
-            "catalog": "test_catalog",
+            "local_base_path": "test_data",
             "schemas": {
                 "raw": "raw_schema",
                 "clean": "clean_schema",
@@ -160,7 +164,7 @@ class TestPipeline:
             }
         }
         
-        # Setup mock return values
+        # Mock return values
         mock_df = MagicMock()
         mock_get_raw_data.return_value = mock_df
         mock_read_dataset.return_value = mock_df
@@ -168,21 +172,25 @@ class TestPipeline:
         mock_rename_contract.return_value = mock_df
         mock_cast_types.return_value = mock_df
         mock_prepare_transactions.return_value = mock_df
-        mock_apply_schema.return_value = mock_df
         
         # Act
         run_pipeline(spark, config)
         
-        # Assert - Verify read_dataset calls
+        # Assert - verify read_dataset calls in the correct order with correct parameters
         expected_read_calls = [
+            # First read: raw_claims for cleaning
             call(spark, config, "raw_schema", "raw_claims_table"),
+            # Second read: raw_contracts for cleaning
             call(spark, config, "raw_schema", "raw_contracts_table"),
+            # Third read: clean_claims for transactions
             call(spark, config, "clean_schema", "clean_claims_table"),
+            # Fourth read: clean_contracts for transactions
             call(spark, config, "clean_schema", "clean_contracts_table")
         ]
         mock_read_dataset.assert_has_calls(expected_read_calls, any_order=False)
         assert mock_read_dataset.call_count == 4
         assert mock_apply_schema.call_count == 5  # raw claims, raw contracts, clean claims, clean contracts, transactions
+        assert mock_write_dataset.call_count == 5  # raw claims, raw contracts, clean claims, clean contracts, transactions
     
     @patch('etl.pipeline.ensure_all_schemas')
     @patch('etl.pipeline.write_dataset')
@@ -201,6 +209,7 @@ class TestPipeline:
         # Arrange - config missing some keys
         config = {
             "execution_mode": "local",
+            "local_base_path": "test_data",
             "schemas": {
                 "raw": "raw_schema"
                 # Missing clean and serving schemas

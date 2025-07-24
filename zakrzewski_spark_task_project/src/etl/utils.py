@@ -1,5 +1,6 @@
 from pyspark.sql.functions import col, to_date, to_timestamp
 from pyspark.sql.types import *
+import os
 
 def cast_column_types(df_raw, schema):
     casted_columns = []
@@ -58,6 +59,18 @@ def apply_schema_with_metadata(df, schema, spark_session=None):
     
     # Apply the schema with metadata
     return spark_session.createDataFrame(result_df.rdd, StructType(fields_with_metadata))
+
+def save_schema_with_metadata(df, output_path):
+    # Save the schema (with metadata) of a Spark DataFrame to a JSON file.
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(df.schema.json())
+
+def schema_json_path(config):
+    return os.path.join(
+        config['local_base_path'],
+        config['schemas']['serving'],
+        f"{config['tables']['serving_transactions']}.schema.json"
+    )
 
 def assert_composite_key_unique(df, key_columns=None):
     # Check if key_columns is provided, otherwise use primary key columns from schema metadata
