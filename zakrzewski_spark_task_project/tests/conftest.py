@@ -9,6 +9,8 @@ def spark():
     spark = SparkSession.builder \
         .appName("ETL Pipeline Tests") \
         .master("local[*]") \
+        .config("spark.driver.host", "127.0.0.1") \
+        .config("spark.driver.bindAddress", "127.0.0.1") \
         .config("spark.sql.adaptive.enabled", "false") \
         .config("spark.sql.adaptive.coalescePartitions.enabled", "false") \
         .getOrCreate()
