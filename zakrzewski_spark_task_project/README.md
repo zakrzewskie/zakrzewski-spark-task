@@ -78,22 +78,22 @@ By default, exports are saved to `data/export/transactions.{format}`.
 
 ```
 .
-├── config/                  # Configuration files
-│   └── dev.yaml            # Development configuration
-├── data/                   # Data directories (created at runtime)
-│   ├── 10_raw/             # Raw input data
-│   ├── 20_clean/           # Cleaned data
-│   ├── 30_serving/         # Final processed data
-│   └── export/             # Export directory for processed data
-├── scripts/                # Utility scripts
+├── config/                   # Configuration files
+│   └── dev.yaml              # Development configuration
+├── data/                     # Data directories (created at runtime)
+│   ├── 10_raw/               # Raw input data
+│   ├── 20_clean/             # Cleaned data
+│   ├── 30_serving/           # Final processed data
+│   └── export/               # Export directory for processed data
+├── scripts/                  # Utility scripts
 │   └── export_transactions.py  # Data export utility
-├── src/                    # Source code
-│   └── etl/                # ETL pipeline code
+├── src/                      # Source code
+│   └── etl/                  # ETL pipeline code
 │       ├── __init__.py
-│       ├── pipeline.py     # Main pipeline implementation
-│       └── utils.py        # Utility functions
-└── tests/                  # Test files
-    └── test_pipeline.py    # Pipeline tests
+│       ├── pipeline.py       # Main pipeline implementation
+│       └── utils.py          # Utility functions
+└── tests/                    # Test files
+    └── test_pipeline_raw.py  # Pipeline tests
 ```
 
 ## Running Tests
