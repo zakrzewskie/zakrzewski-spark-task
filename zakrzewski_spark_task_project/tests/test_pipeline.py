@@ -4,10 +4,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..',
 
 import pytest
 from pyspark.sql.types import *
-from unittest.mock import patch, MagicMock, call
+from pyspark.sql import Row
+from unittest.mock import patch, MagicMock, call, ANY
 
-# Patch composite key check globally for all tests in this file
-patch('etl.utils.assert_composite_key_unique', lambda df, keys: None).start()
+# Patch composite key check for all tests
+patch('etl.utils.assert_composite_key_unique', lambda df, keys=None: None).start()
 
 from etl.pipeline import run_pipeline
 
@@ -22,7 +23,8 @@ class TestPipeline:
     @patch('etl.pipeline.rename_columns_contract')
     @patch('etl.pipeline.rename_columns_claim')
     @patch('etl.pipeline.get_raw_data')
-    def test_run_pipeline_databricks_mode(self, mock_get_raw_data, mock_rename_claim, 
+    @patch('etl.pipeline.apply_schema_with_metadata')
+    def test_run_pipeline_databricks_mode(self, mock_apply_schema, mock_get_raw_data, mock_rename_claim, 
                                         mock_rename_contract, mock_cast_types, 
                                         mock_prepare_transactions, mock_read_dataset,
                                         mock_write_dataset, mock_ensure_schemas, spark):
@@ -41,7 +43,7 @@ class TestPipeline:
                 "raw_contracts": "raw_contracts_table",
                 "clean_claims": "clean_claims_table",
                 "clean_contracts": "clean_contracts_table",
-                "serving_transactions": "serving_transactions_table"
+                "serving_transactions": "TRANSACTIONS"
             }
         }
         
@@ -69,6 +71,9 @@ class TestPipeline:
         
         # Check that read_dataset is called 4 times (raw claims, raw contracts, clean claims, clean contracts)
         assert mock_read_dataset.call_count == 4
+        
+        # Check that apply_schema_with_metadata is called for each dataset
+        assert mock_apply_schema.call_count == 5  # raw claims, raw contracts, clean claims, clean contracts, transactions
     
     @patch('etl.pipeline.ensure_all_schemas')
     @patch('etl.pipeline.write_dataset')
@@ -78,7 +83,8 @@ class TestPipeline:
     @patch('etl.pipeline.rename_columns_contract')
     @patch('etl.pipeline.rename_columns_claim')
     @patch('etl.pipeline.get_raw_data')
-    def test_run_pipeline_local_mode(self, mock_get_raw_data, mock_rename_claim, 
+    @patch('etl.pipeline.apply_schema_with_metadata')
+    def test_run_pipeline_local_mode(self, mock_apply_schema, mock_get_raw_data, mock_rename_claim, 
                                    mock_rename_contract, mock_cast_types, 
                                    mock_prepare_transactions, mock_read_dataset,
                                    mock_write_dataset, mock_ensure_schemas, spark):
@@ -96,7 +102,7 @@ class TestPipeline:
                 "raw_contracts": "raw_contracts_table",
                 "clean_claims": "clean_claims_table",
                 "clean_contracts": "clean_contracts_table",
-                "serving_transactions": "serving_transactions_table"
+                "serving_transactions": "TRANSACTIONS"
             }
         }
         
@@ -120,6 +126,7 @@ class TestPipeline:
         assert mock_get_raw_data.call_count == 2
         assert mock_write_dataset.call_count == 5
         assert mock_read_dataset.call_count == 4
+        assert mock_apply_schema.call_count == 5  # raw claims, raw contracts, clean claims, clean contracts, transactions
     
     @patch('etl.pipeline.ensure_all_schemas')
     @patch('etl.pipeline.write_dataset')
@@ -129,7 +136,8 @@ class TestPipeline:
     @patch('etl.pipeline.rename_columns_contract')
     @patch('etl.pipeline.rename_columns_claim')
     @patch('etl.pipeline.get_raw_data')
-    def test_run_pipeline_read_dataset_calls(self, mock_get_raw_data, mock_rename_claim, 
+    @patch('etl.pipeline.apply_schema_with_metadata')
+    def test_run_pipeline_read_dataset_calls(self, mock_apply_schema, mock_get_raw_data, mock_rename_claim, 
                                            mock_rename_contract, mock_cast_types, 
                                            mock_prepare_transactions, mock_read_dataset,
                                            mock_write_dataset, mock_ensure_schemas, spark):
@@ -148,7 +156,7 @@ class TestPipeline:
                 "raw_contracts": "raw_contracts_table",
                 "clean_claims": "clean_claims_table",
                 "clean_contracts": "clean_contracts_table",
-                "serving_transactions": "transactions_table"
+                "serving_transactions": "TRANSACTIONS"
             }
         }
         
@@ -160,6 +168,7 @@ class TestPipeline:
         mock_rename_contract.return_value = mock_df
         mock_cast_types.return_value = mock_df
         mock_prepare_transactions.return_value = mock_df
+        mock_apply_schema.return_value = mock_df
         
         # Act
         run_pipeline(spark, config)
@@ -173,6 +182,7 @@ class TestPipeline:
         ]
         mock_read_dataset.assert_has_calls(expected_read_calls, any_order=False)
         assert mock_read_dataset.call_count == 4
+        assert mock_apply_schema.call_count == 5  # raw claims, raw contracts, clean claims, clean contracts, transactions
     
     @patch('etl.pipeline.ensure_all_schemas')
     @patch('etl.pipeline.write_dataset')
@@ -182,7 +192,8 @@ class TestPipeline:
     @patch('etl.pipeline.rename_columns_contract')
     @patch('etl.pipeline.rename_columns_claim')
     @patch('etl.pipeline.get_raw_data')
-    def test_run_pipeline_with_missing_config_keys(self, mock_get_raw_data, mock_rename_claim, 
+    @patch('etl.pipeline.apply_schema_with_metadata')
+    def test_run_pipeline_with_missing_config_keys(self, mock_apply_schema, mock_get_raw_data, mock_rename_claim, 
                                                   mock_rename_contract, mock_cast_types, 
                                                   mock_prepare_transactions, mock_read_dataset,
                                                   mock_write_dataset, mock_ensure_schemas, spark):

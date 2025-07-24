@@ -14,4 +14,4 @@ tables:
   clean_claims: clean_CLAIM
   raw_contracts: raw_CONTRACT
   clean_contracts: clean_CONTRACT
-  serving_transactions: serving_TRANSACTIONS
+  serving_transactions: TRANSACTIONS

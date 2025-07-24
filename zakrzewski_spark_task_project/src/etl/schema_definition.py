@@ -1,10 +1,33 @@
 from pyspark.sql.types import *
 
+# Create metadata for primary key fields
+pk_metadata = {"primary_key": True}
+
+raw_claims_schema = StructType([
+    StructField("SOURCE_SYSTEM", StringType(), True, pk_metadata),
+    StructField("CLAIM_ID", StringType(), True, pk_metadata),
+    StructField("CONTRACT_SOURCE_SYSTEM", StringType(), True, pk_metadata),
+    StructField("CONTRAT_ID", StringType(), True, pk_metadata),
+    StructField("CLAIM_TYPE", StringType(), True),
+    StructField("DATE_OF_LOSS", StringType(), True),
+    StructField("AMOUNT", StringType(), True),
+    StructField("CREATION_DATE", StringType(), True),
+])
+
+raw_contracts_schema = StructType([
+    StructField("SOURCE_SYSTEM", StringType(), True, pk_metadata),
+    StructField("CONTRACT_ID", StringType(), True, pk_metadata),
+    StructField("CONTRACT_TYPE", StringType(), True),
+    StructField("INSURED_PERIOD_FROM", StringType(), True),
+    StructField("INSURED_PERIOD_TO", StringType(), True),
+    StructField("CREATION_DATE", StringType(), True),
+])
+
 clean_claims_schema = StructType([
-    StructField("SOURCE_SYSTEM", StringType(), True),
-    StructField("CLAIM_ID", StringType(), True),
-    StructField("CONTRACT_SOURCE_SYSTEM", StringType(), True),
-    StructField("CONTRACT_ID", IntegerType(), True),
+    StructField("SOURCE_SYSTEM", StringType(), True, pk_metadata),
+    StructField("CLAIM_ID", StringType(), True, pk_metadata),
+    StructField("CONTRACT_SOURCE_SYSTEM", StringType(), True, pk_metadata),
+    StructField("CONTRACT_ID", LongType(), True, pk_metadata),
     StructField("CLAIM_TYPE", StringType(), True),
     StructField("DATE_OF_LOSS", DateType(), True),
     StructField("AMOUNT", DecimalType(16, 5), True),
@@ -12,8 +35,8 @@ clean_claims_schema = StructType([
 ])
 
 clean_contracts_schema = StructType([
-    StructField("SOURCE_SYSTEM", StringType(), True),
-    StructField("CONTRACT_ID", LongType(), True),
+    StructField("SOURCE_SYSTEM", StringType(), True, pk_metadata),
+    StructField("CONTRACT_ID", LongType(), True, pk_metadata),
     StructField("CONTRACT_TYPE", StringType(), True),
     StructField("INSURED_PERIOD_FROM", DateType(), True),
     StructField("INSURED_PERIOD_TO", DateType(), True),
@@ -21,8 +44,8 @@ clean_contracts_schema = StructType([
 ])
 
 serving_transactions_schema = StructType([
-    StructField("CONTRACT_SOURCE_SYSTEM", StringType(), True),
-    StructField("CONTRACT_SOURCE_SYSTEM_ID", LongType(), True),
+    StructField("CONTRACT_SOURCE_SYSTEM", StringType(), True, pk_metadata),
+    StructField("CONTRACT_SOURCE_SYSTEM_ID", LongType(), True, pk_metadata),
     StructField("SOURCE_SYSTEM_ID", IntegerType(), True),
     StructField("TRANSACTION_TYPE", StringType(), False),
     StructField("TRANSACTION_DIRECTION", StringType(), True),
@@ -30,7 +53,7 @@ serving_transactions_schema = StructType([
     StructField("BUSINESS_DATE", DateType(), True),
     StructField("CREATION_DATE", TimestampType(), True),
     StructField("SYSTEM_TIMESTAMP", TimestampType(), True),
-    StructField("NSE_ID", StringType(), False),
+    StructField("NSE_ID", StringType(), False, pk_metadata),
 ])
 
 # Composite primary keys for each table
